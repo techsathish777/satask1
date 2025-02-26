@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; }
+        #company-list { width: 20%; border-right: 1px solid #ccc; padding: 10px; }
+        #chart-container { width: 80%; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div id="company-list"></div>
+    <div id="chart-container">
+        <canvas id="stock-chart"></canvas>
+    </div>
+
+    <script>
+        async function fetchCompanies() {
+            let response = await fetch('/api/companies');
+            let companies = await response.json();
+            let listContainer = document.getElementById('company-list');
+            companies.forEach(company => {
+                let btn = document.createElement('button');
+                btn.textContent = company;
+                btn.onclick = () => fetchStockData(company);
+                listContainer.appendChild(btn);
+                listContainer.appendChild(document.createElement('br'));
+            });
+        }
+
+        async function fetchStockData(company) {
+            let response = await fetch(`/api/stock/${company}`);
+            let stockData = await response.json();
+            let labels = stockData.map(entry => entry.Date);
+            let prices = stockData.map(entry => entry.Price);
+
+            let ctx = document.getElementById('stock-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: company, data: prices, borderColor: 'blue', fill: false }]
+                }
+            });
+        }
+
+        fetchCompanies();
+    </script>
+</body>
+</html>
